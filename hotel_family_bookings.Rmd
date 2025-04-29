@@ -6,7 +6,7 @@ output:  html_document
 ---
 # Context and Set-up
 
-This is a walkthrough of the analysis I've completed on a Google Coursera sample dataset about hotel bookings. In this hypothetical scenario, the hotel is looking to increase profits by better understanding their profit data. The table used below, "hotel_bookings" is a newly created table that merged two of their previous tables together. 
+This is a walkthrough of the analysis I've completed with a sample dataset about hotel bookings given during the Google Data Analyst Certification. In this hypothetical scenario, the hotel is looking to increase profits by better understanding their profit data. The table used below, "hotel_bookings" is a newly created table that merged two of their previous tables together. 
 
 ## Hypothetical Scenario
 In this hypothetical situation (invented by me, not the course), the hotel is planning to do an ad campaign targeted toward families since family reservations generate more revenue than single reservations. That said, the hospital executives are concerned that bookings with families might have disproportionately high complications (e.g., more cancellations, less lead-time (advanced bookings), more special requests). Before running the ad campaign, the executives want to understand the current relationship between family reservations and complications. They also want to know better understand the number of family reservations they currently get as well as the number of complications separate from each other.
