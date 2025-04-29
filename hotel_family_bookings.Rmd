@@ -1,0 +1,119 @@
+---
+title: "Hotel Bookings"
+author: "Katie Romrell"
+date: "2025-04-20"
+output:  html_document
+---
+# Context and Set-up
+
+This is a walkthrough of the analysis I've completed on a Google Coursera sample dataset about hotel bookings. In this hypothetical scenario, the hotel is looking to increase profits by better understanding their profit data. The table used below, "hotel_bookings" is a newly created table that merged two of their previous tables together. 
+
+## Hypothetical Scenario
+In this hypothetical situation (invented by me, not the course), the hotel is planning to do an ad campaign targeted toward families since family reservations generate more revenue than single reservations. That said, the hospital executives are concerned that bookings with families might have disproportionately high complications (e.g., more cancellations, less lead-time (advanced bookings), more special requests). Before running the ad campaign, the executives want to understand the current relationship between family reservations and complications. They also want to know better understand the number of family reservations they currently get as well as the number of complications separate from each other.
+
+## Environment
+For this analysis, I'll need the tidyverse, skimr, and janitor packages as well as the hotel_bookings dataset.
+```{r install packages}
+install.packages("tidyverse")
+library(tidyverse)
+install.packages("skimr")
+library(skimr)
+install.packages("janitor")
+library(janitor)
+
+hotel_bookings <- read_csv("C:/Users/kmrom/Downloads/hotel_bookings.csv")
+```
+
+## Explore Dataset
+Before I start any analysis, I want to explore the dataset and familiarize myself with the data.
+
+```{r explore data}
+View(hotel_bookings)
+colnames(hotel_bookings)
+skim_without_charts(hotel_bookings)
+clean_names(hotel_bookings)
+
+```
+## Clean Data
+In order to make my future analysis easier, I cleaned the data in the following ways:
+
+**1. Deleted Observations with NA:** My explorations demonstrated that there were 4 NA values in the children columns. Because it's a small number and I intend to include children as an important part of my analysis, I'll drop those observations.
+
+**2. Create New Columns:** Since my analysis will examine children generally, not separated by babies vs. children, I created an all_children column. I also created a "guests" column for adults, babies, and children. Finally, I created a text-based column identifying if the booking has "Children" or "No Children" to help with future bar graphs. Additionally, in (hypothetically) talking to the hotel staff, they said that lead-time was only experienced as a complication if it was under 7 days, so I created a binary column called "lead_under_7". 
+
+**3. Removed Outliers:** Upon investigating the data, I noticed that there were three observations that stood out significantly as outliers -- two with 10 children and one with 9 children. After that, the next biggest total was 3 children. Since those data points represent only 3 observations out of over 120,000 (and thus wouldn't have any statistical weight in my analysis), I decided to remove them so they wouldn't impact the scale and readability of my charts.
+
+**4. Renamed Column:** I renamed "total_of_special_requests" to just "special_request" to save myself time in the future.
+
+Then I examined the data to ensure that all of those changes were executed correctly.
+
+```{r clean data}
+hotel_bookings_clean<-hotel_bookings %>% 
+  drop_na(children) %>% 
+  mutate(all_children=children+babies) %>% 
+  mutate(guests=children+babies+adults) %>% 
+  mutate(presence_of_children=ifelse(children>0, "Children", "No Children")) %>% 
+  mutate(presence_of_children_binary=ifelse(children>0, 1, 0)) %>% 
+  mutate(lead_under_7=ifelse(lead_time<7, 1, 0)) %>% 
+  filter(all_children<9) %>% 
+  rename(special_requests=total_of_special_requests)
+skim_without_charts(hotel_bookings_clean)
+View(hotel_bookings_clean)
+
+```
+# Analysis
+Below is my analysis. As a reminder, the analysis priorities are to 1) understand the current rate of family reservations and complications, and 2) to understand the relationship between children and reservation complications such as cancellations, lack of lead-time, and special requests. 
+
+## Descriptive Statistics
+For this analysis, I want to focus on factors that complicate a hotel stay, such as cancellations, lack of lead-time, and specials requests.To do this, I'll start by aggregating the data to get a feel for the norms. I included both mean and median for lead_time because I was worried the distribution may be skewed.
+
+```{r aggregate data}
+hotel_bookings_clean %>% 
+  summarize(
+    cancel_perc=mean(is_canceled)*100,
+    lead_under_7_tally=sum(lead_under_7),
+    requests_mean=mean(special_requests),
+    requests_max=max(special_requests),
+    requests_min=min(special_requests)
+  )
+
+hotel_bookings_clean %>% 
+  summarize(
+    children_mean=mean(all_children),
+    reservations_with_children=sum(presence_of_children_binary),
+    total_reservations=length(presence_of_children_binary),
+    perc_with_children=sum(presence_of_children_binary)/length(presence_of_children_binary)*100
+  )
+
+
+```
+
+## Plot Relationships
+Now that I have a better idea of the norms, I want to plot some of these relationships. These aren't charts I would show to stakeholders, so I didn't prioritize aesthetics in the chart.
+
+```{r plot data}
+ggplot(data=hotel_bookings_clean)+
+  geom_bar(mapping=aes(x=is_canceled, fill=presence_of_children))
+
+ggplot(data=hotel_bookings_clean)+
+  geom_bar(mapping=aes(x=special_requests, fill=presence_of_children))
+
+hotel_bookings_clean %>% 
+  filter(lead_under_7==1) %>% 
+  ggplot()+geom_jitter(mapping=aes(x=lead_time, y=all_children), alpha=.5)
+
+```
+Because of the extreme differences in the n values of those with and without kids, it's difficult for these visualizations to show any relationship that may exist. For that reason, I decided to run new vizes on the averages.
+
+```{r}
+lead_time_averages<-hotel_bookings_clean %>% 
+  group_by(all_children) %>% 
+  summarize(
+    mean=mean(lead_time),
+    
+    )
+  
+
+lead_time_averages
+```
+
