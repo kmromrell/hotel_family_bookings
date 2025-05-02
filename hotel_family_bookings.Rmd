@@ -36,21 +36,16 @@ clean_names(hotel_bookings)
 ## Clean Data
 In order to make my future analysis easier, I cleaned the data in the following ways:
 
-**1. Deleted Observations with NA:** My explorations demonstrated that there were 4 NA values in the children columns. Because it's a small number and I intend to include children as an important part of my analysis, I'll drop those observations.
+**1. Deleted Outliers and Observations with NA:** Out of 120,000 observations, there were only 4 NA values and 3 instances with more than three children (two 10 and one 9). These values were removed to make the scale of charts more streamlined (since they were statistically negligible). 
 
-**2. Create New Columns:** Since my analysis will examine children generally, not separated by babies vs. children, I created an all_children column. I also created a "guests" column for adults, babies, and children. Finally, I created a text-based column identifying if the booking has "Children" or "No Children" to help with future bar graphs. Additionally, in (hypothetically) talking to the hotel staff, they said that lead-time was only experienced as a complication if it was under 7 days, so I created a binary column called "lead_under_7". 
+**2. Create New Columns:** I created an all_children column that combines the pre-existent children and babies columns. I also created a text-based column identifying if the booking has "Children" or "No Children" to help with future bar graphs. Additionally, in (hypothetically) talking to the hotel staff, they said that lead-time was only experienced as a complication if it was under 7 days, so I created a binary column called "lead_under_7". 
 
-**3. Removed Outliers:** Upon investigating the data, I noticed that there were three observations that stood out significantly as outliers -- two with 10 children and one with 9 children. After that, the next biggest total was 3 children. Since those data points represent only 3 observations out of over 120,000 (and thus wouldn't have any statistical weight in my analysis), I decided to remove them so they wouldn't impact the scale and readability of my charts.
-
-**4. Renamed Column:** I renamed "total_of_special_requests" to just "special_request" to save myself time in the future.
-
-Then I examined the data to ensure that all of those changes were executed correctly.
+**4. Renamed Column:** I simplified "total_of_special_requests" as "special_request"
 
 ```{r clean data}
 hotel_bookings_clean<-hotel_bookings %>% 
   drop_na(children) %>% 
   mutate(all_children=children+babies) %>% 
-  mutate(guests=children+babies+adults) %>% 
   mutate(presence_of_children=ifelse(children>0, "Children", "No Children")) %>% 
   mutate(presence_of_children_binary=ifelse(children>0, 1, 0)) %>% 
   mutate(lead_under_7=ifelse(lead_time<7, 1, 0)) %>% 
